@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="概览我把MyBatis的工作原理分为以下几个方面或方面：1234561. 读取MyBatis核心配置文件的文件流2. 解析文件流获取SessionFactory对象3. 获取SqlSession对象4. 整合参数执行数据库操作(增删改查）5. 事务提交6. 关闭会话 一.创建SqlSessionFactory对象我Google了一下不通过Spring注入使用MyBatis操作数据库的方式How d">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MyBatis 工作原理">
+<meta property="og:url" content="http://yoursite.com/2019/04/22/MyBatis-工作原理/index.html">
+<meta property="og:site_name" content="城北徐公的客运站">
+<meta property="og:description" content="概览我把MyBatis的工作原理分为以下几个方面或方面：1234561. 读取MyBatis核心配置文件的文件流2. 解析文件流获取SessionFactory对象3. 获取SqlSession对象4. 整合参数执行数据库操作(增删改查）5. 事务提交6. 关闭会话 一.创建SqlSessionFactory对象我Google了一下不通过Spring注入使用MyBatis操作数据库的方式How d">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-04-22T14:03:23.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MyBatis 工作原理">
+<meta name="twitter:description" content="概览我把MyBatis的工作原理分为以下几个方面或方面：1234561. 读取MyBatis核心配置文件的文件流2. 解析文件流获取SessionFactory对象3. 获取SqlSession对象4. 整合参数执行数据库操作(增删改查）5. 事务提交6. 关闭会话 一.创建SqlSessionFactory对象我Google了一下不通过Spring注入使用MyBatis操作数据库的方式How d">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/22/MyBatis-工作原理/">
+
+
+
+
+
+  <title>MyBatis 工作原理 | 城北徐公的客运站</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">城北徐公的客运站</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">勿谓言之不预。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/22/MyBatis-工作原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Leon">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="https://upload-images.jianshu.io/upload_images/15853336-fb2c1e50fdb9d4e6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="城北徐公的客运站">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">MyBatis 工作原理</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-22T09:56:44+08:00">
+                2019-04-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p>我把MyBatis的工作原理分为以下几个方面或方面：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1. 读取MyBatis核心配置文件的文件流</span><br><span class="line">2. 解析文件流获取SessionFactory对象</span><br><span class="line">3. 获取SqlSession对象</span><br><span class="line">4. 整合参数执行数据库操作(增删改查）</span><br><span class="line">5. 事务提交</span><br><span class="line">6. 关闭会话</span><br></pre></td></tr></table></figure></p>
+<h3 id="一-创建SqlSessionFactory对象"><a href="#一-创建SqlSessionFactory对象" class="headerlink" title="一.创建SqlSessionFactory对象"></a>一.创建SqlSessionFactory对象</h3><p>我Google了一下不通过Spring注入使用MyBatis操作数据库的方式<br><a href="https://kodejava.org/how-do-i-create-an-sqlsessionfactory-object-in-mybatis/" target="_blank" rel="noopener">How do I create an SqlSessionFactory object in MyBatis? | Kode Java</a></p>
+<p><strong>Kode Java:</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) throws IOException &#123;</span><br><span class="line">       // A resource file for MyBatis configuration.</span><br><span class="line">        Reader reader = </span><br><span class="line">        Resources.getResourceAsReader(&quot;configuration.xml&quot;);</span><br><span class="line"></span><br><span class="line">        // Creates an SqlSessionFactoryBuilder. This builder need only </span><br><span class="line">        // create one time during the application life time.</span><br><span class="line">        SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();</span><br><span class="line"></span><br><span class="line">        // Creates an instance of SqlSessionFactory. This object can be </span><br><span class="line">        // used to initiate an SqlSession for querying information from </span><br><span class="line">        // the mapped query.</span><br><span class="line">        SqlSessionFactory factory = builder.build(reader);</span><br><span class="line">        System.out.println(&quot;factory = &quot; + factory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>改造：</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) throws IOException &#123;</span><br><span class="line">        String resource = &quot;mybatis-config.xml&quot;;</span><br><span class="line">        InputStream inputStream = Resources.getResourceAsStream(resource);</span><br><span class="line">        SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(inputStream);</span><br><span class="line">        // 从SqlSessionFactory对象中获取 SqlSession对象</span><br><span class="line">        sqlSession = factory.openSession();		</span><br><span class="line">        sqlSession.close();		</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="二-工作原理"><a href="#二-工作原理" class="headerlink" title="二.工作原理"></a>二.工作原理</h3><h4 id="1-核心代码"><a href="#1-核心代码" class="headerlink" title="1.核心代码"></a>1.核心代码</h4><p>通过上述步骤一的代码，可以改造出一个MyBatis与数据库之间的操作的过程，如下：<br><strong>实体类：</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public class UserInfo implements Serializable &#123;</span><br><span class="line">    //主键id</span><br><span class="line">    private Integer id;</span><br><span class="line">    //号码</span><br><span class="line">    private String phone;</span><br><span class="line">    //密码</span><br><span class="line">    private String password;</span><br><span class="line"></span><br><span class="line">    private static final long serialVersionUID = 1L;</span><br><span class="line">    //忽略getter、setter、toString方法</span><br><span class="line">  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>MyBatis配置文件：</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;</span><br><span class="line">&lt;!DOCTYPE configuration</span><br><span class="line">  PUBLIC &quot;-//mybatis.org//DTD Config 3.0//EN&quot;</span><br><span class="line">  &quot;http://mybatis.org/dtd/mybatis-3-config.dtd&quot;&gt;</span><br><span class="line">&lt;configuration&gt;</span><br><span class="line">	&lt;environments default=&quot;development&quot;&gt;</span><br><span class="line">		&lt;environment id=&quot;development&quot;&gt;</span><br><span class="line">			&lt;transactionManager type=&quot;JDBC&quot; /&gt;</span><br><span class="line">			&lt;dataSource type=&quot;POOLED&quot;&gt;</span><br><span class="line">				&lt;property name=&quot;driver&quot; value=&quot;com.mysql.cj.jdbc.Driver&quot; /&gt;</span><br><span class="line">				&lt;property name=&quot;url&quot; value=&quot;jdbc:mysql://localhost:3306/boatmate?serverTimezone=UTC&quot; /&gt;</span><br><span class="line">				&lt;property name=&quot;username&quot; value=&quot;root&quot; /&gt;</span><br><span class="line">				&lt;property name=&quot;password&quot; value=&quot;1+1==Two&quot; /&gt;</span><br><span class="line">			&lt;/dataSource&gt;</span><br><span class="line">		&lt;/environment&gt;</span><br><span class="line">	&lt;/environments&gt;</span><br><span class="line">	&lt;mappers&gt;</span><br><span class="line">		&lt;mapper resource=&quot;UserInfoMapper.xml&quot; /&gt;</span><br><span class="line">	&lt;/mappers&gt;	</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure></p>
+<p><strong>UserInfo 对应mapper文件：</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><br><span class="line">&lt;!DOCTYPE mapper</span><br><span class="line">    PUBLIC &quot;-//mybatis.org//DTD Mapper 3.0//EN&quot;</span><br><span class="line">    &quot;http://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;&gt;</span><br><span class="line">&lt;mapper namespace=&quot;UserInfo&quot;&gt;</span><br><span class="line">    &lt;!-- 添加用户 --&gt;</span><br><span class="line">	&lt;insert id=&quot;addUser&quot; useGeneratedKeys=&quot;true&quot; keyProperty=&quot;id&quot;</span><br><span class="line">		parameterType=&quot;com.xuyj.mybatiswork.model.UserInfo&quot;&gt;</span><br><span class="line">		INSERT INTO user_info (phone, password)</span><br><span class="line">		VALUES (#&#123;phone&#125;,</span><br><span class="line">		#&#123;password&#125;)</span><br><span class="line">	&lt;/insert&gt;</span><br><span class="line">&lt;/mapper&gt;</span><br></pre></td></tr></table></figure></p>
+<p><strong>操作代码:</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line"></span><br><span class="line">		UserInfo user = new UserInfo();</span><br><span class="line">		user.setPhone(&quot;15252478436&quot;);</span><br><span class="line">		user.setPassword(&quot;12345678&quot;);</span><br><span class="line"></span><br><span class="line">		String resource = &quot;mybatis-config.xml&quot;;</span><br><span class="line">		InputStream inputStream;</span><br><span class="line">		SqlSession sqlSession = null;</span><br><span class="line">		try &#123;</span><br><span class="line">			//读取文件流</span><br><span class="line">			inputStream = Resources.getResourceAsStream(resource);</span><br><span class="line">			//将MyBatis配置文件流转换成SessionFactory对象</span><br><span class="line">			SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(inputStream);</span><br><span class="line">			// 获取 SqlSession对象</span><br><span class="line">			sqlSession = factory.openSession();</span><br><span class="line">			// 执行操作</span><br><span class="line">			sqlSession.insert(&quot;addUser&quot;, user);</span><br><span class="line">			// 提交操作</span><br><span class="line">			sqlSession.commit();</span><br><span class="line">		&#125; catch (IOException e) &#123;</span><br><span class="line">			// TODO Auto-generated catch block</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125; finally &#123;</span><br><span class="line">			// 关闭SqlSession</span><br><span class="line">			if (sqlSession != null) &#123;</span><br><span class="line">				sqlSession.close();</span><br><span class="line"></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="2-分析代码"><a href="#2-分析代码" class="headerlink" title="2.分析代码"></a>2.分析代码</h4><h5 id="2-1-获取配置文件的文件流"><a href="#2-1-获取配置文件的文件流" class="headerlink" title="2.1 获取配置文件的文件流"></a>2.1 获取配置文件的文件流</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">inputStream = Resources.getResourceAsStream(resource);</span><br></pre></td></tr></table></figure>
+<p>MyBatis提供了一个文件资源加载类，通过传入路径获取文件流</p>
+<h5 id="2-2-获取SqlSessionFactory"><a href="#2-2-获取SqlSessionFactory" class="headerlink" title="2.2 获取SqlSessionFactory"></a>2.2 获取SqlSessionFactory</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(inputStream);</span><br></pre></td></tr></table></figure>
+<p>这个Builder模式会通过XMLConfigBuilder对象对文件流进行解析，构造Configuration对象，然后交给build()方法构造DefaultSqlSessionFactory对象并返回。<br><strong>具体代码</strong>：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">public SqlSessionFactory build(InputStream inputStream, String environment, Properties properties) &#123;</span><br><span class="line">    try &#123;</span><br><span class="line">      XMLConfigBuilder parser = new XMLConfigBuilder(inputStream, environment, properties);</span><br><span class="line">      return build(parser.parse());</span><br><span class="line">    &#125; catch (Exception e) &#123;</span><br><span class="line">      throw ExceptionFactory.wrapException(&quot;Error building SqlSession.&quot;, e);</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">      ErrorContext.instance().reset();</span><br><span class="line">      try &#123;</span><br><span class="line">        inputStream.close();</span><br><span class="line">      &#125; catch (IOException e) &#123;</span><br><span class="line">        // Intentionally ignore. Prefer previous error.</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  public SqlSessionFactory build(Configuration config) &#123;</span><br><span class="line">    return new DefaultSqlSessionFactory(config);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<h5 id="2-4-获取SqlSession对象"><a href="#2-4-获取SqlSession对象" class="headerlink" title="2.4 获取SqlSession对象"></a>2.4 获取SqlSession对象</h5><p><strong>具体代码</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) &#123;</span><br><span class="line">    Transaction tx = null;</span><br><span class="line">    try &#123;</span><br><span class="line">      final Environment environment = configuration.getEnvironment();</span><br><span class="line">      // 根据Configuration的Environment属性来创建事务工厂</span><br><span class="line">      final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);</span><br><span class="line">      // 从事务工厂中创建事务，默认等级为null，autoCommit=false</span><br><span class="line">      tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);</span><br><span class="line">       // 创建执行器</span><br><span class="line">       Executor executor = this.configuration.newExecutor(tx, execType);</span><br><span class="line">        // 根据执行器创建返回对象 SqlSession</span><br><span class="line">      return new DefaultSqlSession(configuration, executor, autoCommit);</span><br><span class="line">    &#125; catch (Exception e) &#123;</span><br><span class="line">      closeTransaction(tx); // may have fetched a connection so lets call close()</span><br><span class="line">      throw ExceptionFactory.wrapException(&quot;Error opening session.  Cause: &quot; + e, e);</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">      ErrorContext.instance().reset();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<h5 id="2-3-通过SqlSession对象，对数据库操作"><a href="#2-3-通过SqlSession对象，对数据库操作" class="headerlink" title="2.3 通过SqlSession对象，对数据库操作"></a>2.3 通过SqlSession对象，对数据库操作</h5><p>通过SqlSessionFactory获取到DefaultSqlSession对象，之后的操作基本就类似其他持久层框架，这边就只分析插入操作。<br><strong>具体代码：</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line"> public int update(String statement, Object parameter) &#123;</span><br><span class="line">   try &#123;</span><br><span class="line">     dirty = true;</span><br><span class="line">     MappedStatement ms = configuration.getMappedStatement(statement);</span><br><span class="line">    //通过执行器进行数据库操作</span><br><span class="line">     return executor.update(ms, wrapCollection(parameter));</span><br><span class="line">   &#125; catch (Exception e) &#123;</span><br><span class="line">     throw ExceptionFactory.wrapException(&quot;Error updating database.  Cause: &quot; + e, e);</span><br><span class="line">   &#125; finally &#123;</span><br><span class="line">     ErrorContext.instance().reset();</span><br><span class="line">   &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></p>
+<p>MappedStatement是一个sql映射对象。里面封装的数据就是mapper.xml的键值信息。</p>
+<h5 id="2-4-SimpleExecutor-对象执行sql语句"><a href="#2-4-SimpleExecutor-对象执行sql语句" class="headerlink" title="2.4 SimpleExecutor 对象执行sql语句"></a>2.4 SimpleExecutor 对象执行sql语句</h5><p><strong>具体代码</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line"> public int doUpdate(MappedStatement ms, Object parameter) throws SQLException &#123;</span><br><span class="line">   Statement stmt = null;</span><br><span class="line">   try &#123;</span><br><span class="line">     Configuration configuration = ms.getConfiguration();</span><br><span class="line">    // 创建StatementHandler对象，从而创建Statement对象</span><br><span class="line">     StatementHandler handler = configuration.newStatementHandler(this, ms, parameter, RowBounds.DEFAULT, null, null);</span><br><span class="line">       // 将sql语句和参数绑定并生成SQL指令</span><br><span class="line">     stmt = prepareStatement(handler, ms.getStatementLog());</span><br><span class="line">     return handler.update(stmt);</span><br><span class="line">   &#125; finally &#123;</span><br><span class="line">     closeStatement(stmt);</span><br><span class="line">   &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li><p>通过prepareStatement()方法,研究MyBatis是如何将sql拼接合成的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">private Statement prepareStatement(StatementHandler handler, Log statementLog) throws SQLException &#123;</span><br><span class="line">   Statement stmt;</span><br><span class="line">   Connection connection = getConnection(statementLog);</span><br><span class="line">   // 准备Statement</span><br><span class="line">   Statement stmt = handler.prepare(connection);</span><br><span class="line">   // 设置SQL查询中的参数值</span><br><span class="line">   handler.parameterize(stmt);</span><br><span class="line">   return stmt;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看parameterize()</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"> public void parameterize(Statement statement) throws SQLException &#123;</span><br><span class="line">    this.parameterHandler.setParameters((PreparedStatement)statement);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>在这一步中，先把Statement转换成PreparedStatement对象，可以看出这里是MyBatis对JDBC的一个封装。</p>
+<ul>
+<li>handler.update()<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line"> public int update(Statement statement) throws SQLException &#123;</span><br><span class="line">   PreparedStatement ps = (PreparedStatement) statement;</span><br><span class="line">   //执行语句</span><br><span class="line">   ps.execute();</span><br><span class="line">  //获取返回值</span><br><span class="line">   int rows = ps.getUpdateCount();</span><br><span class="line">   Object parameterObject = boundSql.getParameterObject();</span><br><span class="line">   KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();</span><br><span class="line">   keyGenerator.processAfter(executor, mappedStatement, ps, parameterObject);</span><br><span class="line">   return rows;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h5 id="2-5-事务提交"><a href="#2-5-事务提交" class="headerlink" title="2.5 事务提交"></a>2.5 事务提交</h5><p>也是对JDBC的一层封装<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line"> public void commit(boolean force) &#123;</span><br><span class="line">   try &#123;</span><br><span class="line">   // 是否提交（判断是提交还是回滚）</span><br><span class="line">     executor.commit(isCommitOrRollbackRequired(force));</span><br><span class="line">     dirty = false;</span><br><span class="line">   &#125; catch (Exception e) &#123;</span><br><span class="line">     throw ExceptionFactory.wrapException(&quot;Error committing transaction.  Cause: &quot; + e, e);</span><br><span class="line">   &#125; finally &#123;</span><br><span class="line">     ErrorContext.instance().reset();</span><br><span class="line">   &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></p>
+<p>最后调用的也是JDBCTransation的commit()<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public void commit() throws SQLException &#123;</span><br><span class="line">    if (this.connection != null &amp;&amp; !this.connection.getAutoCommit()) &#123;</span><br><span class="line">        if (log.isDebugEnabled()) &#123;</span><br><span class="line">            log.debug(&quot;Committing JDBC Connection [&quot; + this.connection + &quot;]&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        // 提交连接</span><br><span class="line">        this.connection.commit();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/22/MySQL-相关问题/" rel="next" title="MySQL 相关问题">
+                <i class="fa fa-chevron-left"></i> MySQL 相关问题
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/05/hello-world/" rel="prev" title="Hello World">
+                Hello World <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="https://upload-images.jianshu.io/upload_images/15853336-fb2c1e50fdb9d4e6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Leon">
+            
+              <p class="site-author-name" itemprop="name">Leon</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#概览"><span class="nav-number">1.</span> <span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一-创建SqlSessionFactory对象"><span class="nav-number">2.</span> <span class="nav-text">一.创建SqlSessionFactory对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二-工作原理"><span class="nav-number">3.</span> <span class="nav-text">二.工作原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-核心代码"><span class="nav-number">3.1.</span> <span class="nav-text">1.核心代码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-分析代码"><span class="nav-number">3.2.</span> <span class="nav-text">2.分析代码</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-1-获取配置文件的文件流"><span class="nav-number">3.2.1.</span> <span class="nav-text">2.1 获取配置文件的文件流</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-获取SqlSessionFactory"><span class="nav-number">3.2.2.</span> <span class="nav-text">2.2 获取SqlSessionFactory</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-4-获取SqlSession对象"><span class="nav-number">3.2.3.</span> <span class="nav-text">2.4 获取SqlSession对象</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-3-通过SqlSession对象，对数据库操作"><span class="nav-number">3.2.4.</span> <span class="nav-text">2.3 通过SqlSession对象，对数据库操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-4-SimpleExecutor-对象执行sql语句"><span class="nav-number">3.2.5.</span> <span class="nav-text">2.4 SimpleExecutor 对象执行sql语句</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-5-事务提交"><span class="nav-number">3.2.6.</span> <span class="nav-text">2.5 事务提交</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leon</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
